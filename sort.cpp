@@ -1,10 +1,5 @@
 #include "sort.h"
 
-void swap(int* a, int* b) {
-    int temp = *b;
-    *b = *a;
-    *a = temp;
-}
 
 int find_min_exp(int base, int target) {
     int i = 0;
@@ -12,8 +7,8 @@ int find_min_exp(int base, int target) {
     return i;
 }
 
-int partition(int arr[], int low, int high) { //sort the partition
-    int pivot = arr[high];
+int partition(int arr[], int low, int high) {
+  int pivot = arr[high];
     int i = (low - 1);
 
     for (int j = low; j <= high - 1; j++)
@@ -22,11 +17,11 @@ int partition(int arr[], int low, int high) { //sort the partition
         if (arr[j] < pivot)
         {
             i++;
-            swap(arr + i, arr + j);
+            std::swap(arr[i], arr[j]);
         }
     }
-    
-    swap(arr + i + 1, arr + high);
+
+    std::swap(arr[i + 1], arr[high]);
     return (i + 1);
 }
 
@@ -36,16 +31,25 @@ void quicksort(int arr[], int low, int high) {
     {
         int mid = partition(arr, low, high);
 
-#pragma omp parallel 
+        //Using OpenMP Tasks.
+        #pragma omp task shared(arr) firstprivate(low, mid)
         {
             quicksort(arr, low, mid - 1);
+        }
+        #pragma omp task shared(arr) firstprivate(high, mid)
+        {
             quicksort(arr, mid + 1, high);
         }
+
+        //Wait for tasks to finish
+
+        #pragma omp taskwait
+
+
     }
 }
 
 void quicksort_not_parallel(int arr[], int low, int high) {
-    //TODO: Implement
     if (low < high)
     {
         int mid = partition(arr, low, high);
